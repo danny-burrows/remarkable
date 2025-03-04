@@ -8,4 +8,8 @@ pub struct Config {
     /// Path to the directory structure containing markdown files to serve.
     #[clap(long)]
     pub(crate) markdown_dir: PathBuf,
+
+    /// The name of the theme, represented by a directory of stylesheets in `./themes`.
+    #[clap(long, default_value = "basic")]
+    pub(crate) theme: String,
 }

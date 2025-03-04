@@ -4,18 +4,10 @@ use axum::extract::Request;
 use std::time::Duration;
 use tracing::{info, info_span};
 
-// use anyhow::Context;
-// use api_common::error::fallback_handler_404;
-// use axum::Router;
-// use axum::extract::MatchedPath;
-// use axum::extract::Request;
-// use serde::Deserialize;
-// use serde::Serialize;
-// use std::time::Duration;
 use tokio::signal;
+use tower_http::services::ServeDir;
 use tower_http::timeout::TimeoutLayer;
 use tower_http::trace::TraceLayer;
-// use tracing::{info, info_span};
 
 use crate::Config;
 use crate::error::Result;
@@ -24,14 +16,16 @@ use crate::error::fallback_handler_404;
 mod index;
 mod markdown;
 
-fn router() -> Router<Config> {
+fn base_router() -> Router<Config> {
     Router::new()
         .merge(index::router())
         .merge(markdown::router())
 }
 
-pub async fn serve(state: Config) -> Result<()> {
-    let app = router()
+pub async fn serve(config: Config) -> Result<()> {
+    let themes_dir = std::env::current_dir()?.join("themes");
+    let app = base_router()
+        .nest_service("/theme", ServeDir::new(&themes_dir))
         .layer(
             TraceLayer::new_for_http()
                 // Create our own span for the request and include the matched path. The matched
@@ -55,7 +49,7 @@ pub async fn serve(state: Config) -> Result<()> {
             // requests don't hang forever.
             TimeoutLayer::new(Duration::from_secs(10)),
         )
-        .with_state(state)
+        .with_state(config)
         .fallback(fallback_handler_404);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;

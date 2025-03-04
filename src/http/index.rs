@@ -21,5 +21,8 @@ async fn index(State(config): State<Config>) -> Html<String> {
         }
     }
 
-    Html(format!("<h1>Remarkable</h1><ul>{}</ul>", list))
+    Html(format!(
+        "<html><head><link rel='stylesheet' href='/theme/{}/main.css'></head><body><h1>Wiki</h1><ul>{}</ul></body></html>",
+        config.theme, list
+    ))
 }

@@ -23,8 +23,14 @@ async fn serve_markdown(State(config): State<Config>, Path(page): Path<String>) 
         let mut html_output = String::new();
         pulldown_cmark::html::push_html(&mut html_output, parser);
 
-        Html(format!("<html><body>{}</body></html>", html_output))
+        Html(format!(
+            "<html><head><link rel='stylesheet' href='/theme/{}/main.css'></head><body>{}</body></html>",
+            config.theme, html_output
+        ))
     } else {
-        Html("<h1>Page not found</h1>".to_string())
+        Html(format!(
+            "<html><head><link rel='stylesheet' href='/theme/{}/main.css'></head><body><h1>Page Not Found!</h1></body></html>",
+            config.theme
+        ))
     }
 }
