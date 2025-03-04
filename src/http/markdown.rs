@@ -1,5 +1,3 @@
-use std::path::PathBuf;
-
 use axum::{
     Router,
     extract::{Path, State},
@@ -17,7 +15,7 @@ pub(crate) fn router() -> Router<Config> {
 
 #[debug_handler]
 async fn serve_markdown(State(config): State<Config>, Path(page): Path<String>) -> Html<String> {
-    let path = PathBuf::from(config.markdown_dir).join(format!("{}.md", page));
+    let path = config.markdown_dir.join(format!("{}.md", page));
     if let Ok(content) = std::fs::read_to_string(path) {
         let mut options = Options::empty();
         options.insert(Options::ENABLE_STRIKETHROUGH);

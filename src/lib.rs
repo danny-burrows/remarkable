@@ -1,6 +1,6 @@
 mod config;
 mod error;
-pub mod http;
+mod http;
 
 pub use config::Config;
-pub use error::Result;
+pub use http::serve;

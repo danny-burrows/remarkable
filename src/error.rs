@@ -4,9 +4,9 @@ use axum::body::Body;
 use axum::http::{Method, Response, StatusCode, Uri};
 use axum::response::IntoResponse;
 
-pub type Result<T, E = Error> = std::result::Result<T, E>;
+pub(crate) type Result<T, E = Error> = std::result::Result<T, E>;
 
-pub async fn fallback_handler_404(method: Method, uri: Uri) -> Error {
+pub(crate) async fn fallback_handler_404(method: Method, uri: Uri) -> Error {
     Error::NotFound(format!("Method '{method}' not allowed for '{uri}'"))
 }
 
@@ -35,7 +35,7 @@ impl IntoResponse for Error {
         match self {
             Self::NotFound(ref error_message) => {
                 tracing::debug!("User error ({}): {}", self.status_code(), error_message);
-                return (self.status_code(), error_message.clone()).into_response();
+                (self.status_code(), error_message.clone()).into_response()
             }
             Self::Io(ref error_message) => {
                 tracing::debug!(
@@ -43,7 +43,7 @@ impl IntoResponse for Error {
                     self.status_code(),
                     error_message
                 );
-                return (self.status_code(), error_message.to_string()).into_response();
+                (self.status_code(), error_message.to_string()).into_response()
             }
         }
     }
