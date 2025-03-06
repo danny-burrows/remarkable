@@ -26,7 +26,7 @@ async fn index(State(config): State<Config>) -> Html<String> {
 
     Html(
         LayoutTemplate {
-            title: "Remarkable",
+            title: "Index",
             theme: &config.theme,
             body: &format!("<h1>Remarkable</h1><ul>{list}</ul>"),
         }

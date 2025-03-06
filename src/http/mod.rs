@@ -17,7 +17,7 @@ mod index;
 mod markdown;
 
 #[derive(askama::Template)]
-#[template(path = "layout.html")]
+#[template(path = "index.html")]
 pub(crate) struct LayoutTemplate<'a> {
     title: &'a str,
     theme: &'a str,
