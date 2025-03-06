@@ -1,7 +1,10 @@
-use axum::{Router, extract::State, response::Html, routing::get};
+use askama::Template as _;
+use axum::response::Html;
+use axum::{Router, extract::State, routing::get};
 use axum_macros::debug_handler;
 
 use crate::Config;
+use crate::http::LayoutTemplate;
 
 pub(crate) fn router() -> Router<Config> {
     Router::new().route("/", get(index))
@@ -21,8 +24,13 @@ async fn index(State(config): State<Config>) -> Html<String> {
         }
     }
 
-    Html(format!(
-        "<html><head><link rel='stylesheet' href='/theme/{}/main.css'></head><body><h1>Wiki</h1><ul>{}</ul></body></html>",
-        config.theme, list
-    ))
+    Html(
+        LayoutTemplate {
+            title: "Remarkable",
+            theme: &config.theme,
+            body: &format!("<h1>Remarkable</h1><ul>{list}</ul>"),
+        }
+        .render()
+        .unwrap(),
+    )
 }

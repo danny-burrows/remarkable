@@ -16,6 +16,14 @@ use crate::error::fallback_handler_404;
 mod index;
 mod markdown;
 
+#[derive(askama::Template)]
+#[template(path = "layout.html")]
+pub(crate) struct LayoutTemplate<'a> {
+    title: &'a str,
+    theme: &'a str,
+    body: &'a str,
+}
+
 fn base_router() -> Router<Config> {
     Router::new()
         .merge(index::router())
