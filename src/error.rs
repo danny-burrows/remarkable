@@ -6,10 +6,6 @@ use axum::response::IntoResponse;
 
 pub(crate) type Result<T, E = Error> = std::result::Result<T, E>;
 
-pub(crate) async fn fallback_handler_404(method: Method, uri: Uri) -> Error {
-    Error::NotFound(format!("Method '{method}' not allowed for '{uri}'"))
-}
-
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     /// Return `404 Not Found`

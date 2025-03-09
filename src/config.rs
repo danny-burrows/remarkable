@@ -12,4 +12,8 @@ pub struct Config {
     /// The name of the theme, represented by a directory of stylesheets in `./themes`.
     #[clap(long, default_value = "basic")]
     pub(crate) theme: String,
+
+    /// The address for the server to bind to. (e.g. `localhost:3000`)
+    #[clap(long, default_value = "localhost:3000")]
+    pub(crate) bind_address: String,
 }

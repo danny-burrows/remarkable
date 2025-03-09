@@ -1,7 +1,11 @@
 use axum::Router;
+use axum::body::Body;
 use axum::extract::MatchedPath;
 use axum::extract::Request;
+use axum::response::Response;
+use std::fmt::Debug;
 use std::time::Duration;
+use tracing::Span;
 use tracing::{info, info_span};
 
 use tokio::signal;
@@ -11,10 +15,11 @@ use tower_http::trace::TraceLayer;
 
 use crate::Config;
 use crate::error::Result;
-use crate::error::fallback_handler_404;
 
 mod index;
 mod markdown;
+
+const REQUEST_TIMEOUT_SECONDS: u64 = 10;
 
 #[derive(askama::Template)]
 #[template(path = "index.html")]
@@ -31,6 +36,8 @@ fn base_router() -> Router<Config> {
 }
 
 pub async fn serve(config: Config) -> Result<()> {
+    let listener = tokio::net::TcpListener::bind(&config.bind_address).await?;
+
     let themes_dir = std::env::current_dir()?.join("themes");
     let app = base_router()
         .nest_service("/theme", ServeDir::new(&themes_dir))
@@ -44,10 +51,33 @@ pub async fn serve(config: Config) -> Result<()> {
                     let matched_path = request
                         .extensions()
                         .get::<MatchedPath>()
-                        .map(MatchedPath::as_str);
+                        .map(MatchedPath::as_str)
+                        .unwrap_or("");
 
-                    info_span!("http_request", ?method, ?uri, matched_path)
+                    info_span!(
+                        "routes",
+                        ?method,
+                        ?uri,
+                        ?matched_path,
+                        latency = tracing::field::Empty,
+                        status_code = tracing::field::Empty,
+                    )
                 })
+                .on_request(|_request: &Request<Body>, _span: &Span| {
+                    info!("request received");
+                })
+                .on_response(
+                    |response: &Response<Body>, latency: Duration, span: &Span| {
+                        span.record("matched_path", tracing::field::Empty);
+                        span.record(
+                            "latency",
+                            tracing::field::display(format!("{}ms", latency.as_millis())),
+                        );
+                        span.record("status_code", tracing::field::display(response.status()));
+
+                        info!("response sent");
+                    },
+                )
                 // By default `TraceLayer` will log 5xx responses but we're doing our specific
                 // logging of errors so disable that
                 .on_failure(()),
@@ -55,14 +85,14 @@ pub async fn serve(config: Config) -> Result<()> {
         .layer(
             // Graceful shutdown will wait for outstanding requests to complete. Add a timeout so
             // requests don't hang forever.
-            TimeoutLayer::new(Duration::from_secs(10)),
+            TimeoutLayer::new(Duration::from_secs(REQUEST_TIMEOUT_SECONDS)),
         )
-        .with_state(config)
-        .fallback(fallback_handler_404);
+        .with_state(config);
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;
-
-    info!("Listening on {}", listener.local_addr().unwrap());
+    info!(
+        "Remarkable server started & listening on '{}'",
+        listener.local_addr().unwrap()
+    );
     axum::serve(listener, app)
         .with_graceful_shutdown(shutdown_signal())
         .await?;
