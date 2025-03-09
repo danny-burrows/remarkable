@@ -3,7 +3,6 @@ use axum::body::Body;
 use axum::extract::MatchedPath;
 use axum::extract::Request;
 use axum::response::Response;
-use std::fmt::Debug;
 use std::time::Duration;
 use tracing::Span;
 use tracing::{info, info_span};

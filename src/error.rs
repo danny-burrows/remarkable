@@ -1,7 +1,7 @@
 //! Defines a common error type to use for all request handlers.
 
 use axum::body::Body;
-use axum::http::{Method, Response, StatusCode, Uri};
+use axum::http::{Response, StatusCode};
 use axum::response::IntoResponse;
 
 pub(crate) type Result<T, E = Error> = std::result::Result<T, E>;

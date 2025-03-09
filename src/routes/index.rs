@@ -4,7 +4,7 @@ use axum::{Router, extract::State, routing::get};
 use axum_macros::debug_handler;
 
 use crate::Config;
-use crate::http::LayoutTemplate;
+use crate::routes::LayoutTemplate;
 
 pub(crate) fn router() -> Router<Config> {
     Router::new().route("/", get(index))
